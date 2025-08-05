@@ -7,8 +7,10 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "/routes/**/*.ts"],
   "exclude": ["node_modules"],
 }

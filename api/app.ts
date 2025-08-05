@@ -1,13 +1,15 @@
 import express from "express";
 
+import productRoutes from './routes/product-routes.ts';
+
 const app = express();
 const router = express.Router();
 
-app.get('/', (req, res) => {
-    res.send("Hello");
-});
+app.use(express.json());
 
-const port = 3000;
+app.use('/products', productRoutes);
+
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log("Listening on port " + port);
 })
