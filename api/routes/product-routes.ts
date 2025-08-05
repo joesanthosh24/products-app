@@ -6,6 +6,7 @@ type Product = {
     id: number,
     name: string,
     price: number,
+    description: string,
     imageUrl: string
 }
 
@@ -19,7 +20,15 @@ router.get('/', (req, res) => {
 router.post('/add', (req, res) => {
     const product = req.body;
 
-    products.push({ id: id++, name: product.name, price: product.price, imageUrl: product.imageUrl });
+    products.push(
+        { 
+            id: id++, 
+            name: product.name, 
+            price: product.price, 
+            imageUrl: product.imageUrl, 
+            description: product.description 
+        }
+    );
 
     res.send("Added Product");
 });
@@ -27,13 +36,14 @@ router.post('/add', (req, res) => {
 router.put('/:id/edit', (req, res) => {
     const id = Number(req.params.id);
     const index = products.findIndex(product => product.id === Number(id))
-    const { name, price, imageUrl } = req.body;
+    const { name, price, imageUrl, description } = req.body;
 
     products[index] = {
         id,
         name,
         price,
-        imageUrl
+        imageUrl,
+        description
     };
 
     res.send("Edited Product with id " + id);
