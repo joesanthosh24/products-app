@@ -23,9 +23,10 @@ const Product: React.FC<ProductProps> = ({ name, price, description, imageUrl })
         <Card.Body className='d-flex flex-column bg-secondary text-white'>
           <Card.Title>{name}</Card.Title>
           <Card.Text>{description}</Card.Text>
-          <div className='d-flex justify-content-between align-items-center mt-auto'>
-            <Button variant='danger'>Delete</Button>
-            <p className='mb-0'>${price}</p>
+          <div className='d-flex justify-content-start align-items-center mt-auto'>
+            <Button variant='danger' className='me-2'>Delete</Button>
+            <Button variant='warning'>Edit</Button>
+            <p className='mb-0 ms-auto'>${price}</p>
           </div>
         </Card.Body>
       </Card>
