@@ -4,3 +4,8 @@ export type Product = {
     description: string,
     imageUrl: string
 }
+
+export type SortBy = {
+    category: string,
+    ascending: boolean
+}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import ProductComponent from './product.component';
-import type { Product } from '../types';
+import { type SortBy, type Product } from '../types';
 import Search from './search.component';
 
 const Products: React.FC = () => {
@@ -9,6 +9,7 @@ const Products: React.FC = () => {
   const [loading, setLoading] = useState<Boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortBy>({category: "name", ascending: true})
 
   useEffect(() => {
     console.log(searchText);
@@ -19,13 +20,33 @@ const Products: React.FC = () => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
+        const dataToReturn = data.products.filter(product => {
+          if (searchText === "") {
+            return true;
+          }
 
-        setProducts(searchText === "" ? 
-          data.products : 
-          data.products.filter(
-            product => product.name.toLowerCase().includes(searchText.toLowerCase())
-          )
-        );
+          return product.name.toLowerCase().includes(searchText.toLowerCase());
+        })
+          .sort((first: Product, second: Product) => {
+            const categoryOfFirst = first[sortBy.category];
+            const categoryOfSecond = second[sortBy.category];
+
+            if (typeof categoryOfFirst === 'string' && typeof categoryOfSecond === 'string') {
+              return sortBy.ascending
+                ? categoryOfFirst.localeCompare(categoryOfSecond)
+                : categoryOfSecond.localeCompare(categoryOfFirst);
+            }
+
+            if (typeof categoryOfFirst === 'number' && typeof categoryOfSecond === 'number') {
+              return sortBy.ascending
+                ? categoryOfFirst - categoryOfSecond
+                : categoryOfSecond - categoryOfFirst;
+            }
+
+            return 0;
+          })
+
+        setProducts(dataToReturn);
       }
       catch (err: any) {
         setError(err);
