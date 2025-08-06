@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import Button from 'react-bootstrap/Button';
 
 import ProductComponent from './product.component';
 import { type SortBy, type Product } from '../types';
 import Search from './search.component';
-import PaginatedItems from './paginated-items.component';
 import ReactPaginate from 'react-paginate';
+import Button from 'react-bootstrap/Button';
+import { ArrowDownUp } from 'react-bootstrap-icons';
+import Filters from './filters.component';
 
 interface ProductsProps {
   itemsPerPage: number
@@ -78,11 +79,22 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
     }
 
     fetchProducts();
-  }, [sortBy, searchText]);
+  }, [sortBy.ascending, sortBy.category, searchText]);
+
+  const handleFilterChange = (filterCategory: string) => {
+    if (sortBy.category === filterCategory) {
+      setSortBy({...sortBy, ascending: !sortBy.ascending});
+    } else {
+      setSortBy({ category: filterCategory, ascending: true });
+    }
+
+    console.log()
+  }
 
   return (
     <>
       <Search updateSearch={setSearchText} />
+      <Filters handleClick={handleFilterChange} sortCategory={sortBy.category} />
       <div className=' p-5 d-flex flex-wrap justify-content-center'>
         {currentItems.map(product => 
           <ProductComponent key={product.id} {...product} />
