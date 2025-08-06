@@ -12,19 +12,20 @@ interface ProductProps {
 
 const Product: React.FC<ProductProps> = ({ name, price, description, imageUrl }) => {
   return (
-    <div>
-      <Card className='p-0 mb-5 mr-5 border border-secondary-subtle' style={{ width: '20rem' }}>
+    <div className='mb-4 p-3'>
+      <Card className='h-100 d-flex flex-column border border-secondary-subtle' style={{ width: '20rem', height: '100%' }}>
         <Card.Img 
           src={imageUrl} 
           variant='top'
           className='border-bottom border-secondary-subtle'
+          style={{height: '15rem', objectFit: 'cover' }}
         />
-        <Card.Body className='bg-secondary text-white'>
+        <Card.Body className='d-flex flex-column bg-secondary text-white'>
           <Card.Title>{name}</Card.Title>
           <Card.Text>{description}</Card.Text>
-          <div className='d-flex justify-content-between align-items-center'>
+          <div className='d-flex justify-content-between align-items-center mt-auto'>
             <Button variant='danger'>Delete</Button>
-            <p>${price}</p>
+            <p className='mb-0'>${price}</p>
           </div>
         </Card.Body>
       </Card>
