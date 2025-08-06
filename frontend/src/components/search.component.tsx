@@ -2,7 +2,7 @@ import React, { type ChangeEvent } from 'react';
 import { Search } from 'react-bootstrap-icons';
 
 interface SearchProps {
-  updateSearch: (text: string) => string
+  updateSearch: (text: string) => void
 }
 
 const SearchComponent: React.FC<SearchProps> = ({ updateSearch }) => {

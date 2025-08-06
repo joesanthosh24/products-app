@@ -1,15 +1,36 @@
 import React, { useEffect, useState } from 'react';
+import Button from 'react-bootstrap/Button';
 
 import ProductComponent from './product.component';
 import { type SortBy, type Product } from '../types';
 import Search from './search.component';
+import PaginatedItems from './paginated-items.component';
+import ReactPaginate from 'react-paginate';
 
-const Products: React.FC = () => {
+interface ProductsProps {
+  itemsPerPage: number
+}
+
+const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
   const [products, setProducts] = useState<Array<Product>>([]);
   const [loading, setLoading] = useState<Boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchText, setSearchText] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortBy>({category: "name", ascending: true})
+  const [itemOffset, setItemOffset] = useState(0);
+
+  const endOffset = itemOffset + itemsPerPage;
+  console.log(`Loading items from ${itemOffset} to ${endOffset}`);
+  const currentItems = products.slice(itemOffset, endOffset);
+  const pageCount = Math.ceil(products.length / itemsPerPage);
+
+  const handlePageClick = (event: { selected: number }) => {
+    const newOffset = (event.selected * itemsPerPage) % products.length;
+    console.log(
+      `User requested page number ${event.selected}, which is offset ${newOffset}`
+    );
+    setItemOffset(newOffset);
+  }
 
   useEffect(() => {
     console.log(searchText);
@@ -19,7 +40,7 @@ const Products: React.FC = () => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const data = await res.json();
+        const data: {products: Array<Product>} = await res.json();
         const dataToReturn = data.products.filter(product => {
           if (searchText === "") {
             return true;
@@ -57,16 +78,33 @@ const Products: React.FC = () => {
     }
 
     fetchProducts();
-  }, [loading, searchText]);
+  }, [sortBy, searchText]);
 
   return (
     <>
       <Search updateSearch={setSearchText} />
       <div className=' p-5 d-flex flex-wrap justify-content-center'>
-        {products.map(product => 
-          <ProductComponent key={product.name} {...product} />
+        {currentItems.map(product => 
+          <ProductComponent key={product.id} {...product} />
         )}
       </div>
+       {pageCount > 1 && <ReactPaginate
+            breakLabel="..."
+            nextLabel="Next >"
+            previousLabel="< Previous"
+            pageRangeDisplayed={5}
+            pageCount={pageCount}
+            renderOnZeroPageCount={null}
+            onPageChange={handlePageClick}
+            containerClassName="pagination justify-content-center"
+            pageClassName="page-item"
+            pageLinkClassName="page-link"
+            previousClassName="page-item"
+            previousLinkClassName="page-link"
+            nextClassName="page-item"
+            nextLinkClassName="page-link"
+            activeClassName="active"
+        />}
     </>
   )
 }

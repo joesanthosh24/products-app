@@ -5,7 +5,7 @@ import Products from './components/products.component';
 function App() {
   return (
     <>
-      <Products />
+      <Products itemsPerPage={5} />
     </>
   )
 }
