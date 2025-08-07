@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import ReactPaginate from 'react-paginate';
+import Toast from 'react-bootstrap/Toast';
+import { X } from 'react-bootstrap-icons';
 
 import ProductComponent from './product.component';
 import { type SortBy, type Product } from '../types';
 import Search from './search.component';
-import ReactPaginate from 'react-paginate';
-import Button from 'react-bootstrap/Button';
-import { ArrowDownUp } from 'react-bootstrap-icons';
 import Filters from './filters.component';
 
 interface ProductsProps {
@@ -19,6 +19,8 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
   const [searchText, setSearchText] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortBy>({category: "name", ascending: true})
   const [itemOffset, setItemOffset] = useState(0);
+  const [updateMessage, setUpdateMessage] = useState("");
+  const [showToaster, setShowToaster] = useState(false);
 
   const endOffset = itemOffset + itemsPerPage;
   console.log(`Loading items from ${itemOffset} to ${endOffset}`);
@@ -34,7 +36,10 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
   }
 
   useEffect(() => {
-    console.log(searchText);
+    if (updateMessage) {
+      setShowToaster(true);
+    }
+
     const fetchProducts = async () => {
       try {
         const res = await fetch('http://localhost:3000/products');
@@ -79,7 +84,7 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
     }
 
     fetchProducts();
-  }, [sortBy.ascending, sortBy.category, searchText]);
+  }, [sortBy.ascending, sortBy.category, searchText, updateMessage]);
 
   const handleFilterChange = (filterCategory: string) => {
     if (sortBy.category === filterCategory) {
@@ -93,11 +98,25 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
 
   return (
     <>
+      <Toast 
+        show={showToaster} 
+        onClose={() => setShowToaster(false)} 
+        bg='success' 
+        // delay={5000} 
+        // autohide
+        style={{ position: "absolute", left: "40%", top: "5px" }}
+        animation={true}
+      >
+        <Toast.Body className='d-flex justify-content-between align-items-center text-white'>
+          <span>{updateMessage}</span>
+          <X size={20} cursor="pointer" onClick={() => setShowToaster(false)} />
+        </Toast.Body>
+      </Toast>
       <Search updateSearch={setSearchText} />
       <Filters handleClick={handleFilterChange} sortCategory={sortBy.category} />
       <div className=' p-5 d-flex flex-wrap justify-content-center'>
         {currentItems.map(product => 
-          <ProductComponent key={product.id} {...product} />
+          <ProductComponent messageUpdate={setUpdateMessage} key={product._id} id={product._id} {...product} />
         )}
       </div>
        {pageCount > 1 && <ReactPaginate
