@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
@@ -20,27 +21,12 @@ const Product: React.FC<ProductProps> = ({
   imageUrl,
   messageUpdate
 }) => {
+  const navigate = useNavigate();
+
   const handleEditClick = async () => {
-    try {
-      const response = await fetch(`http://localhost:3000/products/${id}/edit`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id, price, imageUrl })
-      });
-
-      const resJSON = await response.json();
-
-      if (!response.ok) {
-        messageUpdate(resJSON.errorMsg);
-      } else {
-        messageUpdate(resJSON.message);
-      }
-    }
-    catch(err) {
-      messageUpdate(`Unexpecteder error occured: ${err}`)
-    }
+    navigate(`/edit/${id}`, { 
+      state: { name, price, description, imageUrl }
+    });
   }
   
   const handleDeleteClick = async () => {
