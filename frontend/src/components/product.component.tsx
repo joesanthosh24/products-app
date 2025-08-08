@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router';
+import { useDispatch } from 'react-redux';
+
+import { type AppDispatch } from '../store/store';
 
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
+import { deleteProduct, fetchAllProducts } from '../api/products';
 
 interface ProductProps {
   id: string,
@@ -22,6 +26,7 @@ const Product: React.FC<ProductProps> = ({
   messageUpdate
 }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleEditClick = async () => {
     navigate(`/edit/${id}`, { 
@@ -30,24 +35,13 @@ const Product: React.FC<ProductProps> = ({
   }
   
   const handleDeleteClick = async () => {
-    try {
-      const response = await fetch(`http://localhost:3000/products/${id}/delete`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+    const result = await dispatch(deleteProduct({ id }));
 
-      const resJSON = await response.json();
-
-      if (!response.ok) {
-        messageUpdate(resJSON.errorMsg);
-      } else {
-        messageUpdate(resJSON.message);
-      }
-    }
-    catch(err) {
-      messageUpdate(`Unexpecteder error occured: ${err}`)
+    if (deleteProduct.fulfilled.match(result)) {
+      dispatch(fetchAllProducts()); // refetch to stay consistent
+    } else {
+      // optionally handle errors
+      console.error("Delete failed:", result.payload || result.error);
     }
   }
 
