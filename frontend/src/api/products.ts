@@ -95,7 +95,9 @@ export const deleteProduct = createAsyncThunk(
                 return rejectWithValue(err.errorMsg);
             }
 
-            return { id }
+            const data = await res.json();
+
+            return { id, message: data.message };
         }
         catch (err) {
             return rejectWithValue((err as Error).message || "Server Error");

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 
 import 'bootstrap/dist/css/bootstrap.min.css';

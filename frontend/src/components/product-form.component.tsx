@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Button from "react-bootstrap/Button";
 
+import PlaceholderImage from '../assets/placeholder-img.png';
+
 interface ProductFormProps {
     name: string;
     description: string;
@@ -18,7 +20,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ name, description, price, ima
 
   return (
     <div className="d-flex">
-        <img src={productImageUrl ? productImageUrl : null} width='50%' height='650px' className="border border-info m-2" />
+        <img 
+            src={productImageUrl ? productImageUrl : PlaceholderImage} 
+            width='50%' 
+            height='650px' 
+            className="border border-info m-2" 
+            alt={productImageUrl ? "New Image" : "Placeholder Iamge"}
+        />
         <div className="inputs d-flex flex-column m-2 w-50">
             <div className="d-flex align-items-center">
                 <p>Name: </p>

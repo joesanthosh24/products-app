@@ -13,8 +13,7 @@ interface ProductProps {
   name: string,
   price: number,
   description: string,
-  imageUrl: string,
-  messageUpdate: (msg: string) => void,
+  imageUrl: string
 }
 
 const Product: React.FC<ProductProps> = ({ 
@@ -22,8 +21,7 @@ const Product: React.FC<ProductProps> = ({
   name, 
   price, 
   description, 
-  imageUrl,
-  messageUpdate
+  imageUrl
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
