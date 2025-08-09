@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { addProduct, deleteProduct, editProduct, fetchAllProducts } from '../../api/products';
+import { userLogin, userSignUp } from '../../api/user-auth';
 
 export interface ToastState {
     show: boolean;
@@ -78,6 +79,34 @@ export const ToastSlice = createSlice({
                 state.messageObj = {
                     message: action.payload.message || "Successfully Edited Product",
                     color: 'success'
+                }
+            })
+            .addCase(userSignUp.fulfilled, (state, action) => {
+                state.show = true;
+                state.messageObj = {
+                    message: action.payload.message || "User Signed Up Successfully",
+                    color: 'success'
+                }
+            })
+            .addCase(userSignUp.rejected, (state, action) => {
+                state.show = true;
+                state.messageObj = {
+                    message: action.payload || "Error Signing Up",
+                    color: 'danger'
+                }
+            })
+            .addCase(userLogin.fulfilled, (state, action) => {
+                state.show = true;
+                state.messageObj = {
+                    message: action.payload.message || "User Logged In Successfully",
+                    color: 'success'
+                }
+            })
+            .addCase(userLogin.rejected, (state, action) => {
+                state.show = true;
+                state.messageObj = {
+                    message: action.payload || "Error Logging in",
+                    color: 'danger'
                 }
             })
     }

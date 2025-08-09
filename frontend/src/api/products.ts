@@ -5,8 +5,13 @@ const BASE_URL = "http://localhost:3000";
 export const fetchAllProducts = createAsyncThunk(
     'products/fetchProducts', 
     async (_, { rejectWithValue }) => {
+        const token = localStorage.getItem('authToken');
         try {
-            const res = await fetch(`${BASE_URL}/products`);
+            const res = await fetch(`${BASE_URL}/products`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
             if (!res.ok) {
                 const err = await res.json();
@@ -29,12 +34,14 @@ export const addProduct = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
+            const token = localStorage.getItem('authToken');
             const res = await fetch(`${BASE_URL}/products/add`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ name, price, imageUrl, description })
+                body: JSON.stringify({ name, price, imageUrl, description, isDeleted: false })
             })
 
             if (!res.ok) {
@@ -57,10 +64,12 @@ export const editProduct = createAsyncThunk(
         { id, price, imageUrl }: { id: string, price: number, imageUrl: string}, 
         { rejectWithValue }) => {
         try {
+            const token = localStorage.getItem('authToken');
             const res = await fetch(`${BASE_URL}/products/${id}/edit`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({price, imageUrl})
             });
@@ -82,11 +91,13 @@ export const editProduct = createAsyncThunk(
 export const deleteProduct = createAsyncThunk(
     'products/deleteProduct',
     async ({ id }: { id: string }, { rejectWithValue }) => {
+        const token = localStorage.getItem('authToken');
         try {
             const res = await fetch(`${BASE_URL}/products/${id}/delete`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
 

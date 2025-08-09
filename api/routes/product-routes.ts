@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import { ObjectId } from 'mongodb';
 
-import { getDatabase } from '../db.ts';
+import Product from '../models/product.ts';
+import AuditLog from '../models/audit-log.ts';
+import { verifyAdmin, verifyToken } from '../middleware/auth.middleware.ts';
+import { auditLog } from '../middleware/audit-log.middleware.ts';
 
 const router = Router();
 
@@ -11,71 +13,82 @@ type Product = {
     price: number,
     description: string,
     imageUrl: string
-}
+};
 
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
     try {
-        const database = getDatabase();
-        const products = await database.collection("products").find().toArray();
+        const products = await Product.find({});
 
         res.json({ products });
     }
     catch(err) {
         console.error("Error fetching products from database", err);
-        res.status(500).send("Server Error");
+        res.status(500).send({errorMsg: "Error fetching products"});
     }
 });
 
-router.post('/add', async (req, res) => {
+router.post('/add', verifyAdmin, auditLog, async (req, res) => {
     const product = req.body;
 
     try {
-        const database = getDatabase();
-        await database.collection("products").insertOne(product)
-            .then(value => {
-                console.log(value);
-            })
+        let _id: string;
 
-        res.json({ message: "Added product to database" });
+        const data = await Product.insertOne(product);
+
+        _id = data.id;
+
+        const { name, price, imageUrl, description, isDeleted } = product;
+        res.json({
+            message: "Added product to database",
+            _id,
+            name,
+            price,
+            imageUrl,
+            description,
+            isDeleted
+        });
     }
     catch(err) {
         console.error("Error adding to database", err);
-        res.status(500).send("Server Error");
+        res.status(500).send({errorMsg: "Error adding product"});
     }
 
     res.send("Added Product");
 });
 
-router.put('/:id/edit', async (req, res) => {
+router.put('/:id/edit', verifyAdmin, auditLog, async (req, res) => {
     const id = req.params.id;
 
     try {
-        const database = getDatabase();
-        await database.collection("products").updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { "price": req.body.price, "imageUrl": req.body.imageUrl } }
-        )
-
-        res.json({ message: `Updated product with id ${id}` });
+        const data = await Product.findByIdAndUpdate(id, { price: req.body.price, imageUrl: req.body.imageUrl });
+        
+        res.json({
+            message: 'Updated product',
+            id: data?.id,
+            price: data?.price,
+            imageUrl: data?.imageUrl
+        });
     }
     catch(err) {
         console.error("Error Editing the product with id ", id);
-        res.status(500).send("Server Error");
+        res.status(500).send({errorMsg: "Error Editing the product"});
     }
 });
 
-router.delete("/:id/delete", async (req, res) => {
+router.delete("/:id/delete", verifyAdmin, auditLog, async (req, res) => {
     const id = req.params.id;
 
     try {
-        const database = getDatabase();
-        await database.collection("products").deleteOne({ _id: new ObjectId(id) });
+        await Product.findByIdAndUpdate(id, { isDeleted: true });
 
-        res.json({ message: `Deleted product with id ${id}` });
+        res.json({
+            message: "Safe Deleted Product",
+            id
+        });
     }
     catch(err) {
-        console.error("Error Deleting the product with id ", id);
-        res.status(500).send("Server Error");
+        console.error("Error Safe Deleting the product with id ", id);
+        res.status(500).send({errorMsg: `Error Safe Deleting the product`});
     }
 })
 

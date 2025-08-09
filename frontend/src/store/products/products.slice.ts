@@ -4,18 +4,24 @@ import { editProduct, fetchAllProducts, deleteProduct } from '../../api/products
 
 export interface ProductsState {
     products: Array<Product>,
-    loading: boolean
+    loading: boolean,
+    viewDeleted: boolean
 };
 
 const initialState: ProductsState = {
     products: [],
-    loading: false
+    loading: false,
+    viewDeleted: false
 };
 
 export const productsSlice = createSlice({
     name: 'products',
     initialState,
-    reducers: {},
+    reducers: {
+        updateViewDeleted: (state, action) => {
+            state.viewDeleted = action.payload.viewDeleted
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchAllProducts.pending, state => {
@@ -23,7 +29,14 @@ export const productsSlice = createSlice({
             })
             .addCase(fetchAllProducts.fulfilled, (state, action) => {
                 state.loading = false;
-                state.products = action.payload.products;
+                state.products = action.payload.products.filter(product => {
+                if (product.isDeleted) {
+                    if (state.viewDeleted) { return true }
+                    else { return false }
+                }
+                
+                return true;
+            })
             })
             .addCase(fetchAllProducts.rejected, (state, action) => {
                 state.loading = false;
@@ -36,10 +49,12 @@ export const productsSlice = createSlice({
             })
             .addCase(deleteProduct.fulfilled, (state, action) => {
                 const { id } = action.payload;
+                const index = state.products.findIndex(product => product._id === id);
 
-                state.products = state.products.filter(product => product._id !== id);
+                state.products[index] = { ...state.products[index], isDeleted: true };
             })
     }
 });
 
+export const { updateViewDeleted } = productsSlice.actions;
 export default productsSlice.reducer;
