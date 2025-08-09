@@ -7,13 +7,17 @@ import { type AppDispatch } from '../store/store';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import { deleteProduct, fetchAllProducts } from '../api/products';
+import type { User } from '../types';
 
 interface ProductProps {
   id: string,
   name: string,
   price: number,
   description: string,
-  imageUrl: string
+  imageUrl: string,
+  user: User,
+  isDeleted: boolean,
+  showDeleted: boolean
 }
 
 const Product: React.FC<ProductProps> = ({ 
@@ -21,9 +25,13 @@ const Product: React.FC<ProductProps> = ({
   name, 
   price, 
   description, 
-  imageUrl
+  imageUrl,
+  user,
+  isDeleted,
+  showDeleted
 }) => {
   const navigate = useNavigate();
+
   const dispatch = useDispatch<AppDispatch>();
 
   const handleEditClick = async () => {
@@ -36,15 +44,20 @@ const Product: React.FC<ProductProps> = ({
     const result = await dispatch(deleteProduct({ id }));
 
     if (deleteProduct.fulfilled.match(result)) {
-      dispatch(fetchAllProducts()); // refetch to stay consistent
+      dispatch(fetchAllProducts());
     } else {
-      // optionally handle errors
-      console.error("Delete failed:", result.payload || result.error);
+      console.error("Delete failed: ", result.payload || result.error);
     }
   }
 
   return (
-    <div className='mb-4 p-3'>
+    <div 
+      className='mb-4 p-3' 
+      style={{ 
+        opacity: isDeleted && showDeleted ? 0.2 : 1,
+        display: isDeleted && !showDeleted ? 'none' : 'block'
+      }}
+    >
       <Card className='h-100 d-flex flex-column border border-secondary-subtle' style={{ width: '20rem', height: '100%' }}>
         <Card.Img 
           src={imageUrl} 
@@ -56,9 +69,12 @@ const Product: React.FC<ProductProps> = ({
           <Card.Title>{name}</Card.Title>
           <Card.Text>{description}</Card.Text>
           <div className='d-flex justify-content-start align-items-center mt-auto'>
-            <Button variant='danger' className='me-2' onClick={handleDeleteClick}>Delete</Button>
-            <Button variant='warning' onClick={handleEditClick}>Edit</Button>
-            <p className='mb-0 ms-auto'>${price}</p>
+            {user.isAdmin && !isDeleted && <>
+              <Button variant='danger' className='me-2' onClick={handleDeleteClick}>Delete</Button>
+              <Button variant='warning' onClick={handleEditClick}>Edit</Button>
+            </>
+            }
+            <p className={`mb-0 ${user.isAdmin ? "ms-auto" : "me-auto"}`}>${price}</p>
           </div>
         </Card.Body>
       </Card>

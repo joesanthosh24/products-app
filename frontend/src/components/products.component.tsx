@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 import { useSelector, useDispatch } from 'react-redux';
 import Button from "react-bootstrap/Button";
+import { ToggleOn, ToggleOff } from 'react-bootstrap-icons';
 import { useNavigate } from 'react-router';
 
 import ProductComponent from './product.component';
@@ -10,6 +11,7 @@ import Search from './search.component';
 import Filters from './filters.component';
 import { fetchAllProducts } from '../api/products';
 import { type RootState, type AppDispatch } from '../store/store';
+import { updateViewDeleted } from '../store/products/products.slice'
 import Toaster from './toaster.component';
 
 interface ProductsProps {
@@ -25,6 +27,8 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
 
   const navigate = useNavigate();
 
+  const user = useSelector((state: RootState) => state.user.currentUser);
+  const viewDeleted = useSelector((state: RootState) => state.products.viewDeleted);
   const products = useSelector((state: RootState) => state.products.products
     .filter(product => {
       if (searchText === "") {
@@ -67,9 +71,8 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
     const fetchProducts = async () => {
       dispatch(fetchAllProducts())
     }
-
     fetchProducts();
-  }, [dispatch]);
+  }, [dispatch, viewDeleted]);
 
   const handleFilterChange = (filterCategory: string) => {
     if (sortBy.category === filterCategory) {
@@ -84,12 +87,25 @@ const Products: React.FC<ProductsProps> = ({ itemsPerPage }) => {
       <Toaster />
       <Search updateSearch={setSearchText} />
       <Filters handleClick={handleFilterChange} sortCategory={sortBy.category} />
-      <div className='position-absolute' style={{ top: '173px', left: '45%' }}>
+      {user.isAdmin && <div className='position-absolute' style={{ top: '173px', left: '45%' }}>
         <Button variant='primary' onClick={() => navigate(`/addProduct`)}>Add Product</Button>
+      </div>}
+      <div className="position-absolute d-flex justify-content-center align-items-center" style={{ top: '173px', left: '60%' }}>
+        <span className='me-3'>View Deleted</span>
+        {viewDeleted ? 
+          <ToggleOn size={25} cursor="pointer" onClick={() => dispatch(updateViewDeleted({ viewDeleted: false }))} /> : 
+          <ToggleOff size={25} cursor="pointer" onClick={() => dispatch(updateViewDeleted({ viewDeleted: true }))} />
+        }
       </div>
       <div className='p-5 d-flex flex-wrap justify-content-center'>
         {currentItems.map(product => 
-          <ProductComponent key={product._id} id={product._id} {...product} />
+          <ProductComponent 
+            key={product._id} 
+            id={product._id} 
+            {...product} 
+            showDeleted={viewDeleted} 
+            user={user}
+          />
         )}
       </div>
        {pageCount > 1 && <ReactPaginate
