@@ -1,9 +1,11 @@
 import { Router } from 'express';
 
 import Product from '../models/product.ts';
-import AuditLog from '../models/audit-log.ts';
 import { verifyAdmin, verifyToken } from '../middleware/auth.middleware.ts';
 import { auditLog } from '../middleware/audit-log.middleware.ts';
+import redisClient from '../cache/redis-connection.ts';
+
+const cacheKey = 'products';
 
 const router = Router();
 
@@ -17,7 +19,12 @@ type Product = {
 
 router.get('/', verifyToken, async (req, res) => {
     try {
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            return res.json({ products: JSON.parse(cachedData) });
+        }
         const products = await Product.find({});
+        await redisClient.set(cacheKey, JSON.stringify(products));
 
         res.json({ products });
     }
@@ -37,7 +44,16 @@ router.post('/add', verifyAdmin, auditLog, async (req, res) => {
 
         _id = data.id;
 
+        const cachedData = await redisClient.get(cacheKey);
+        const products = cachedData ? JSON.parse(cachedData) : [];
+
         const { name, price, imageUrl, description, isDeleted } = product;
+
+        await redisClient.set(cacheKey, JSON.stringify([
+            ...products, 
+            { _id, name, price, imageUrl, description, isDeleted }
+        ]));
+        
         res.json({
             message: "Added product to database",
             _id,
@@ -52,8 +68,6 @@ router.post('/add', verifyAdmin, auditLog, async (req, res) => {
         console.error("Error adding to database", err);
         res.status(500).send({errorMsg: "Error adding product"});
     }
-
-    res.send("Added Product");
 });
 
 router.put('/:id/edit', verifyAdmin, auditLog, async (req, res) => {
@@ -61,7 +75,10 @@ router.put('/:id/edit', verifyAdmin, auditLog, async (req, res) => {
 
     try {
         const data = await Product.findByIdAndUpdate(id, { price: req.body.price, imageUrl: req.body.imageUrl });
-        
+        const products = await Product.find({});
+
+        redisClient.set(cacheKey, JSON.stringify(products));
+
         res.json({
             message: 'Updated product',
             id: data?.id,
@@ -80,6 +97,9 @@ router.delete("/:id/delete", verifyAdmin, auditLog, async (req, res) => {
 
     try {
         await Product.findByIdAndUpdate(id, { isDeleted: true });
+        const products = await Product.find({});
+        
+        redisClient.set(cacheKey, JSON.stringify(products));
 
         res.json({
             message: "Safe Deleted Product",
